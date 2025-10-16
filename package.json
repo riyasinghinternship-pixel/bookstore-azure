@@ -2,14 +2,22 @@
   "name": "nodejs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "main": "root/server.js",
   "scripts": {
+    "start": "node root/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^22.13.11"
+    "@azure/cosmos": "^4.6.0",
+    "@azure/storage-blob": "^12.28.0",
+    "@types/node": "^22.13.11",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "uuid": "^13.0.0"
   }
 }

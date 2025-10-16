@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static("root/public"));
 
 /* --- Cosmos DB setup --- */
 const COSMOS_ENDPOINT = process.env.COSMOS_ENDPOINT;
@@ -24,7 +24,9 @@ if (!COSMOS_ENDPOINT || !COSMOS_KEY) {
   console.error("Missing Cosmos DB credentials in env (COSMOS_ENDPOINT/COSMOS_KEY)");
 }
 
-const cosmosClient = new CosmosClient({ endpoint: COSMOS_ENDPOINT, key: COSMOS_KEY });
+// Ensure endpoint has protocol
+const endpoint = COSMOS_ENDPOINT?.startsWith('http') ? COSMOS_ENDPOINT : `https://${COSMOS_ENDPOINT}`;
+const cosmosClient = new CosmosClient({ endpoint, key: COSMOS_KEY });
 const database = cosmosClient.database(COSMOS_DB);
 const container = database.container(COSMOS_CONTAINER);
 
@@ -36,7 +38,7 @@ const AZ_CONTAINER = process.env.AZURE_CONTAINER_NAME || "covers";
 if (!AZ_ACCOUNT || !AZ_KEY) console.error("Missing Azure Storage account or key env vars");
 
 const sharedKeyCredential = new StorageSharedKeyCredential(AZ_ACCOUNT, AZ_KEY);
-const blobServiceClient = new BlobServiceClient(https://${AZ_ACCOUNT}.blob.core.windows.net, sharedKeyCredential);
+const blobServiceClient = new BlobServiceClient(`https://${AZ_ACCOUNT}.blob.core.windows.net`, sharedKeyCredential);
 const containerClient = blobServiceClient.getContainerClient(AZ_CONTAINER);
 
 // ensure container exists (create if missing)
@@ -45,7 +47,7 @@ const containerClient = blobServiceClient.getContainerClient(AZ_CONTAINER);
     const exists = await containerClient.exists();
     if (!exists) {
       await containerClient.create();
-      console.log(Created blob container: ${AZ_CONTAINER});
+      console.log(`Created blob container: ${AZ_CONTAINER}`);
     }
   } catch (err) {
     console.error("Error ensuring container:", err);
@@ -129,7 +131,7 @@ app.post("/api/generate-sas", async (req, res) => {
     if (!filename) return res.status(400).json({ error: "filename required" });
 
     const safeName = filename.replace(/[^a-zA-Z0-9-.]/g, "");
-    const blobName = covers/${Date.now()}-${safeName};
+    const blobName = `covers/${Date.now()}-${safeName}`;
 
     const permissions = new BlobSASPermissions();
     permissions.create = true;
@@ -146,7 +148,7 @@ app.post("/api/generate-sas", async (req, res) => {
       expiresOn
     }, sharedKeyCredential).toString();
 
-    const url = https://${AZ_ACCOUNT}.blob.core.windows.net/${AZ_CONTAINER}/${encodeURIComponent(blobName)}?${sasToken};
+    const url = `https://${AZ_ACCOUNT}.blob.core.windows.net/${AZ_CONTAINER}/${encodeURIComponent(blobName)}?${sasToken}`;
     res.json({ url, blobName });
   } catch (err) {
     console.error(err);
@@ -174,7 +176,7 @@ app.get("/api/cover-url", async (req, res) => {
       expiresOn
     }, sharedKeyCredential).toString();
 
-    const url = https://${AZ_ACCOUNT}.blob.core.windows.net/${AZ_CONTAINER}/${encodeURIComponent(blob)}?${sasToken};
+    const url = `https://${AZ_ACCOUNT}.blob.core.windows.net/${AZ_CONTAINER}/${encodeURIComponent(blob)}?${sasToken}`;
     // Redirect client to the blob SAS URL (so the <img> src can use it)
     res.redirect(url);
   } catch (err) {
@@ -185,5 +187,5 @@ app.get("/api/cover-url", async (req, res) => {
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(Bookstore server running on port ${port});
+  console.log(`Bookstore server running on port ${port}`);
 });
