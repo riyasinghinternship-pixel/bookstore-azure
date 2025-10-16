@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { v4 as uuidv4 } from "uuid";
 
-import { CosmosClient } from "@azure/cosmos";
+import { MongoClient } from "mongodb";
 import { StorageSharedKeyCredential, BlobServiceClient, generateBlobSASQueryParameters, BlobSASPermissions } from "@azure/storage-blob";
 
 dotenv.config();
@@ -14,21 +14,36 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("root/public"));
 
-/* --- Cosmos DB setup --- */
+/* --- MongoDB (Cosmos DB MongoDB API) setup --- */
 const COSMOS_ENDPOINT = process.env.COSMOS_ENDPOINT;
 const COSMOS_KEY = process.env.COSMOS_KEY;
 const COSMOS_DB = process.env.COSMOS_DATABASE || "BookstoreDB";
-const COSMOS_CONTAINER = process.env.COSMOS_CONTAINER || "Books";
+const COSMOS_COLLECTION = process.env.COSMOS_CONTAINER || "Books";
 
 if (!COSMOS_ENDPOINT || !COSMOS_KEY) {
   console.error("Missing Cosmos DB credentials in env (COSMOS_ENDPOINT/COSMOS_KEY)");
 }
 
-// Ensure endpoint has protocol
-const endpoint = COSMOS_ENDPOINT?.startsWith('http') ? COSMOS_ENDPOINT : `https://${COSMOS_ENDPOINT}`;
-const cosmosClient = new CosmosClient({ endpoint, key: COSMOS_KEY });
-const database = cosmosClient.database(COSMOS_DB);
-const container = database.container(COSMOS_CONTAINER);
+// Build MongoDB connection string for Cosmos DB
+// Extract account name from endpoint (e.g., "cosmos-bookstore-1003" from "cosmos-bookstore-1003.mongo.cosmos.azure.com")
+const accountName = COSMOS_ENDPOINT.split('.')[0];
+const mongoUri = `mongodb://${encodeURIComponent(accountName)}:${encodeURIComponent(COSMOS_KEY)}@${COSMOS_ENDPOINT}:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@${accountName}@`;
+
+const mongoClient = new MongoClient(mongoUri);
+let db;
+let booksCollection;
+
+// Connect to MongoDB
+(async () => {
+  try {
+    await mongoClient.connect();
+    console.log("Connected to MongoDB (Cosmos DB)");
+    db = mongoClient.db(COSMOS_DB);
+    booksCollection = db.collection(COSMOS_COLLECTION);
+  } catch (err) {
+    console.error("Error connecting to MongoDB:", err);
+  }
+})();
 
 /* --- Blob storage setup --- */
 const AZ_ACCOUNT = process.env.AZURE_STORAGE_ACCOUNT;
@@ -56,8 +71,7 @@ const containerClient = blobServiceClient.getContainerClient(AZ_CONTAINER);
 
 /* --- Helper: fetch all items (simple) --- */
 async function listBooks() {
-  const querySpec = { query: "SELECT * FROM c ORDER BY c._ts DESC" };
-  const { resources: items } = await container.items.query(querySpec).fetchAll();
+  const items = await booksCollection.find({}).sort({ createdAt: -1 }).toArray();
   return items;
 }
 
@@ -75,9 +89,9 @@ app.get("/api/books", async (req, res) => {
 app.get("/api/books/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const { resource } = await container.item(id, id).read(); // partitionKey = id (we used /id)
-    if (!resource) return res.status(404).json({ error: "Not found" });
-    res.json(resource);
+    const book = await booksCollection.findOne({ id });
+    if (!book) return res.status(404).json({ error: "Not found" });
+    res.json(book);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: String(err) });
@@ -89,8 +103,8 @@ app.post("/api/books", async (req, res) => {
     const { title, author, price, coverBlob } = req.body;
     const id = uuidv4();
     const doc = { id, title, author, price, coverBlob, createdAt: new Date().toISOString() };
-    const { resource } = await container.items.create(doc);
-    res.status(201).json(resource);
+    await booksCollection.insertOne(doc);
+    res.status(201).json(doc);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: String(err) });
@@ -101,12 +115,16 @@ app.put("/api/books/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const { title, author, price, coverBlob } = req.body;
-    // read existing
-    const { resource } = await container.item(id, id).read();
-    if (!resource) return res.status(404).json({ error: "Not found" });
-    const updated = Object.assign(resource, { title, author, price, coverBlob, updatedAt: new Date().toISOString() });
-    const { resource: replaced } = await container.item(id, id).replace(updated);
-    res.json(replaced);
+    const updateDoc = { 
+      $set: { title, author, price, coverBlob, updatedAt: new Date().toISOString() }
+    };
+    const result = await booksCollection.findOneAndUpdate(
+      { id },
+      updateDoc,
+      { returnDocument: 'after' }
+    );
+    if (!result) return res.status(404).json({ error: "Not found" });
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: String(err) });
@@ -116,7 +134,7 @@ app.put("/api/books/:id", async (req, res) => {
 app.delete("/api/books/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    await container.item(id, id).delete();
+    await booksCollection.deleteOne({ id });
     res.json({ ok: true });
   } catch (err) {
     console.error(err);

@@ -12,13 +12,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/cosmos": "^4.6.0",
     "@azure/storage-blob": "^12.28.0",
     "@types/node": "^22.13.11",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "mongodb": "^6.20.0",
+    "mongodb": "^4.17.0",
     "uuid": "^13.0.0"
   }
 }
