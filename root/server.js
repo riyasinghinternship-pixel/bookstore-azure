@@ -15,21 +15,15 @@ app.use(express.json());
 app.use(express.static("root/public"));
 
 /* --- MongoDB (Cosmos DB MongoDB API) setup --- */
-const COSMOS_ENDPOINT = process.env.COSMOS_ENDPOINT;
-const COSMOS_KEY = process.env.COSMOS_KEY;
+const MONGODB_CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING;
 const COSMOS_DB = process.env.COSMOS_DATABASE || "BookstoreDB";
 const COSMOS_COLLECTION = process.env.COSMOS_CONTAINER || "Books";
 
-if (!COSMOS_ENDPOINT || !COSMOS_KEY) {
-  console.error("Missing Cosmos DB credentials in env (COSMOS_ENDPOINT/COSMOS_KEY)");
+if (!MONGODB_CONNECTION_STRING) {
+  console.error("Missing MONGODB_CONNECTION_STRING in environment variables");
 }
 
-// Build MongoDB connection string for Cosmos DB
-// Extract account name from endpoint (e.g., "cosmos-bookstore-1003" from "cosmos-bookstore-1003.mongo.cosmos.azure.com")
-const accountName = COSMOS_ENDPOINT.split('.')[0];
-const mongoUri = `mongodb://${encodeURIComponent(accountName)}:${encodeURIComponent(COSMOS_KEY)}@${COSMOS_ENDPOINT}:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@${accountName}@`;
-
-const mongoClient = new MongoClient(mongoUri);
+const mongoClient = new MongoClient(MONGODB_CONNECTION_STRING);
 let db;
 let booksCollection;
 
@@ -71,7 +65,8 @@ const containerClient = blobServiceClient.getContainerClient(AZ_CONTAINER);
 
 /* --- Helper: fetch all items (simple) --- */
 async function listBooks() {
-  const items = await booksCollection.find({}).sort({ createdAt: -1 }).toArray();
+  // Sort by _id descending (most recent first) - _id is always indexed
+  const items = await booksCollection.find({}).sort({ _id: -1 }).toArray();
   return items;
 }
 
