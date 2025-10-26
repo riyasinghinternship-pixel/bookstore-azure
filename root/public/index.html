@@ -1,179 +1,305 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Bookstore Management — Azure Demo</title>
-  <style>
-    body{font-family:Inter, system-ui, -apple-system,Segoe UI,Roboto,Arial;margin:20px;background:#f7fafc;color:#0f172a}
-    .container{max-width:1000px;margin:0 auto}
-    header{display:flex;justify-content:space-between;align-items:center}
-    .card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 20px rgba(2,6,23,0.06);margin-top:16px}
-    .grid{display:grid;grid-template-columns:1fr 360px;gap:16px}
-    input,textarea,select{width:100%;padding:8px;border-radius:6px;border:1px solid #e6eef8}
-    button{background:#2563eb;color:#fff;padding:10px 12px;border-radius:8px;border:none;cursor:pointer}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px;border-bottom:1px solid #eef2ff;text-align:left}
-    img.cover{width:80px;height:100px;object-fit:cover;border-radius:6px}
-    .muted{color:#6b7280}
-    form label{font-size:13px}
-    .actions button{margin-right:6px}
-    @media(max-width:900px){.grid{grid-template-columns:1fr}}
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <h1>Bookstore Management — Azure Demo</h1>
-      <div class="muted">Demo: Replit + Azure Cosmos DB + Blob Storage</div>
-    </header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Bookstore Management — Azure Demo</title>
+    <style>
+      body {
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Arial;
+        margin: 20px;
+        background: #f7fafc;
+        color: #0f172a;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .card {
+        background: #fff;
+        padding: 18px;
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(2, 6, 23, 0.06);
+        margin-top: 16px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 16px;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #e6eef8;
+      }
+      button {
+        background: #2563eb;
+        color: #fff;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #eef2ff;
+        text-align: left;
+      }
+      img.cover {
+        width: 80px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 6px;
+      }
+      .muted {
+        color: #6b7280;
+      }
+      form label {
+        font-size: 13px;
+      }
+      .actions button {
+        margin-right: 6px;
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Bookstore Management — Azure Demo</h1>
+        <div class="muted">Demo: Replit + Azure Cosmos DB + Blob Storage</div>
+      </header>
 
-    <div class="grid">
-      <main class="card" id="mainCard">
-        <h2>Books</h2>
-        <div id="booksArea" class="muted">Loading books...</div>
-      </main>
+      <div class="grid">
+        <main class="card" id="mainCard">
+          <h2>Books</h2>
+          <div id="booksArea" class="muted">Loading books...</div>
+        </main>
 
-      <aside class="card">
-        <h3 id="formTitle">Add new book</h3>
-        <form id="bookForm">
-          <input type="hidden" id="bookId" />
-          <label>Title
-            <input id="title" required />
-          </label>
-          <label style="margin-top:8px">Author
-            <input id="author" required />
-          </label>
-          <label style="margin-top:8px">Price (INR)
-            <input id="price" type="number" step="0.01" required />
-          </label>
-          <label style="margin-top:8px">Cover image
-            <input id="coverFile" type="file" accept="image/*" />
-          </label>
+        <aside class="card">
+          <h3 id="formTitle">Add new book</h3>
+          <form id="bookForm">
+            <input type="hidden" id="bookId" />
+            <label
+              >Title
+              <input id="title" required />
+            </label>
+            <label style="margin-top: 8px"
+              >Author
+              <input id="author" required />
+            </label>
+            <label style="margin-top: 8px"
+              >Price (INR)
+              <input id="price" type="number" step="0.01" required />
+            </label>
+            <label style="margin-top: 8px"
+              >Cover image
+              <input id="coverFile" type="file" accept="image/*" />
+            </label>
 
-          <div style="margin-top:10px;display:flex;gap:8px">
-            <button type="submit" id="saveBtn">Save</button>
-            <button type="button" id="resetBtn" style="background:#6b7280">Reset</button>
-          </div>
+            <div style="margin-top: 10px; display: flex; gap: 8px">
+              <button type="submit" id="saveBtn">Save</button>
+              <button type="button" id="resetBtn" style="background: #6b7280">
+                Reset
+              </button>
+            </div>
 
-          <div id="formStatus" class="muted" style="margin-top:10px"></div>
-        </form>
-      </aside>
+            <div id="formStatus" class="muted" style="margin-top: 10px"></div>
+          </form>
+        </aside>
+      </div>
+
+      <footer style="margin-top: 18px" class="muted">
+        Tip: Upload a small image as the cover. For grading, check Cosmos DB and
+        Blob container in Azure Portal.
+      </footer>
     </div>
 
-    <footer style="margin-top:18px" class="muted">Tip: Upload a small image as the cover. For grading, check Cosmos DB and Blob container in Azure Portal.</footer>
-  </div>
+    <script>
+      const apiBase = ""; // leave empty if frontend and backend are same Replit project
 
-<script>
-const apiBase = '';
-
-async function fetchBooks(){
-  const area = document.getElementById('booksArea');
-  area.textContent = 'Loading...';
-  try{
-    const r = await fetch('/api/books');
-    const books = await r.json();
-    if (!Array.isArray(books) || books.length === 0) {
-      area.innerHTML = '<div class="muted">No books found. Add one using the form.</div>';
-      return;
-    }
-    const rows = books.map(b => {
-      const cover = b.coverBlob ? <img class="cover" src="/api/cover-url?blob=${encodeURIComponent(b.coverBlob)}" /> : '';
-      return `<tr>
-        <td style="width:90px">${cover}</td>
-        <td><strong>${escapeHtml(b.title)}</strong><div class="muted">${escapeHtml(b.author)}</div></td>
-        <td>₹ ${Number(b.price).toFixed(2)}</td>
-        <td class="actions">
-          <button onclick="editBook('${b.id}')">Edit</button>
-          <button onclick="deleteBook('${b.id}')" style="background:#ef4444">Delete</button>
-        </td>
-      </tr>`;
-    }).join('');
-    area.innerHTML = <table><thead><tr><th></th><th>Book</th><th>Price</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>;
-  }catch(err){
-    console.error(err);
-    area.textContent = 'Error loading books';
-  }
-}
-
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));}
-
-async function deleteBook(id){
-  if(!confirm('Delete this book?')) return;
-  await fetch('/api/books/' + encodeURIComponent(id), { method: 'DELETE' });
-  await fetchBooks();
-}
-
-async function editBook(id){
-  const r = await fetch('/api/books/' + encodeURIComponent(id));
-  const b = await r.json();
-  document.getElementById('bookId').value = b.id;
-  document.getElementById('title').value = b.title;
-  document.getElementById('author').value = b.author;
-  document.getElementById('price').value = b.price;
-  document.getElementById('formTitle').textContent = 'Edit book';
-  document.getElementById('formStatus').textContent = 'Editing ' + b.title;
-}
-
-document.getElementById('resetBtn').addEventListener('click', () => {
-  document.getElementById('bookForm').reset();
-  document.getElementById('bookId').value = '';
-  document.getElementById('formTitle').textContent = 'Add new book';
-  document.getElementById('formStatus').textContent = '';
-});
-
-document.getElementById('bookForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const id = document.getElementById('bookId').value || null;
-  const title = document.getElementById('title').value.trim();
-  const author = document.getElementById('author').value.trim();
-  const price = Number(document.getElementById('price').value) || 0;
-  const file = document.getElementById('coverFile').files[0];
-  const status = document.getElementById('formStatus');
-  status.textContent = 'Saving...';
-
-  try {
-    let coverBlobName = null;
-    if (file) {
-      status.textContent = 'Requesting SAS URL for cover...';
-      const meta = { filename: file.name };
-      const pres = await fetch('/api/generate-sas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(meta) });
-      const { url, blobName } = await pres.json();
-      status.textContent = 'Uploading cover to Azure Blob Storage...';
-      // PUT with x-ms-blob-type header
-      const up = await fetch(url, {
-        method: 'PUT',
-        headers: { 'x-ms-blob-type': 'BlockBlob', 'Content-Type': file.type || 'application/octet-stream' },
-        body: file
-      });
-      if(!up.ok){
-        const t = await up.text().catch(()=>null);
-        throw new Error('Cover upload failed: ' + up.status + ' ' + up.statusText + ' ' + (t||''));
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
       }
-      coverBlobName = blobName;
-    }
 
-    const payload = { title, author, price, coverBlob: coverBlobName };
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? '/api/books/' + encodeURIComponent(id) : '/api/books';
-    const resp = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    if(!resp.ok) throw new Error('Save failed');
+      async function fetchBooks() {
+        const area = document.getElementById("booksArea");
+        area.textContent = "Loading...";
+        try {
+          const r = await fetch(apiBase + "/api/books");
+          const books = await r.json();
 
-    document.getElementById('bookForm').reset();
-    document.getElementById('bookId').value = '';
-    document.getElementById('formTitle').textContent = 'Add new book';
-    status.textContent = 'Saved!';
-    await fetchBooks();
-  } catch (err) {
-    console.error(err);
-    status.textContent = 'Error: ' + err.message;
-  }
-});
+          if (!Array.isArray(books) || books.length === 0) {
+            area.innerHTML =
+              '<div class="muted">No books found. Add one using the form.</div>';
+            return;
+          }
 
-async function init(){
-  await fetchBooks();
-}
-init();
-</script>
-</body>
+          const rows = books
+            .map((b) => {
+              const cover = b.coverBlob
+                ? `<img class="cover" src="/api/cover-url?blob=${encodeURIComponent(b.coverBlob)}" />`
+                : "";
+              return `
+        <tr>
+          <td style="width:90px">${cover}</td>
+          <td><strong>${escapeHtml(b.title)}</strong>
+              <div class="muted">${escapeHtml(b.author)}</div></td>
+          <td>₹ ${Number(b.price).toFixed(2)}</td>
+          <td class="actions">
+            <button onclick="editBook('${b.id}')">Edit</button>
+            <button onclick="deleteBook('${b.id}')" style="background:#ef4444">Delete</button>
+          </td>
+        </tr>`;
+            })
+            .join("");
+
+          area.innerHTML = `
+      <table>
+        <thead>
+          <tr><th></th><th>Book</th><th>Price</th><th>Actions</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+        } catch (err) {
+          console.error(err);
+          area.textContent = "Error loading books";
+        }
+      }
+
+      async function deleteBook(id) {
+        if (!confirm("Delete this book?")) return;
+        await fetch(apiBase + "/api/books/" + encodeURIComponent(id), {
+          method: "DELETE",
+        });
+        await fetchBooks();
+      }
+
+      async function editBook(id) {
+        const r = await fetch(apiBase + "/api/books/" + encodeURIComponent(id));
+        const b = await r.json();
+        document.getElementById("bookId").value = b.id;
+        document.getElementById("title").value = b.title;
+        document.getElementById("author").value = b.author;
+        document.getElementById("price").value = b.price;
+        document.getElementById("formTitle").textContent = "Edit book";
+        document.getElementById("formStatus").textContent =
+          "Editing " + b.title;
+      }
+
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        document.getElementById("bookForm").reset();
+        document.getElementById("bookId").value = "";
+        document.getElementById("formTitle").textContent = "Add new book";
+        document.getElementById("formStatus").textContent = "";
+      });
+
+      document
+        .getElementById("bookForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id = document.getElementById("bookId").value || null;
+          const title = document.getElementById("title").value.trim();
+          const author = document.getElementById("author").value.trim();
+          const price = Number(document.getElementById("price").value) || 0;
+          const file = document.getElementById("coverFile").files[0];
+          const status = document.getElementById("formStatus");
+          status.textContent = "Saving...";
+
+          try {
+            let coverBlobName = null;
+            if (file) {
+              status.textContent = "Requesting SAS URL for cover...";
+              const meta = { filename: file.name };
+              const pres = await fetch(apiBase + "/api/generate-sas", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(meta),
+              });
+              const { url, blobName } = await pres.json();
+              status.textContent = "Uploading cover to Azure Blob Storage...";
+              const up = await fetch(url, {
+                method: "PUT",
+                headers: {
+                  "x-ms-blob-type": "BlockBlob",
+                  "Content-Type": file.type || "application/octet-stream",
+                },
+                body: file,
+              });
+              if (!up.ok) {
+                const t = await up.text().catch(() => null);
+                throw new Error(
+                  "Cover upload failed: " +
+                    up.status +
+                    " " +
+                    up.statusText +
+                    " " +
+                    (t || ""),
+                );
+              }
+              coverBlobName = blobName;
+            }
+
+            const payload = { title, author, price, coverBlob: coverBlobName };
+            const method = id ? "PUT" : "POST";
+            const url = id
+              ? apiBase + "/api/books/" + encodeURIComponent(id)
+              : apiBase + "/api/books";
+            const resp = await fetch(url, {
+              method,
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            if (!resp.ok) throw new Error("Save failed");
+
+            document.getElementById("bookForm").reset();
+            document.getElementById("bookId").value = "";
+            document.getElementById("formTitle").textContent = "Add new book";
+            status.textContent = "Saved!";
+            await fetchBooks();
+          } catch (err) {
+            console.error(err);
+            status.textContent = "Error: " + err.message;
+          }
+        });
+
+      async function init() {
+        await fetchBooks();
+      }
+      init();
+    </script>
+  </body>
 </html>
